@@ -1,0 +1,19 @@
+{
+  "name": "explain-me-form-groups-wc",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 3131"
+  },
+  "dependencies": {
+    "highlight.js": "11.9.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.1.12",
+    "tailwindcss": "4.1.12",
+    "vite": "7.1.7"
+  }
+}

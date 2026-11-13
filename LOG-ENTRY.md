@@ -4,4 +4,4 @@ Copy this row into your central log (set location here: <!-- e.g. `explain-me-lo
 
 | Date | Repo | Topic | Summary |
 | ---- | ---- | ----- | ------- |
-| YYYY-MM-DD | `explain-me-<topic>` | Topic name | 2-3 line human summary of what you learned. |
+| 2026-11-13 | `explain-me-form-groups-wc` | `<form-group>` validation wrapper | Reworked Powell's single-input demo into a radio-group-aware Web Component: `VALIDITY_ORDER` precedence, `focusout`+`relatedTarget` guard, `AbortController` lifecycle, always-in-tree `aria-live` message. Interactive demo + full source accordion, Vite build (`npm run build` → self-contained `dist/`, Tailwind+hljs bundled via npm) for Cloudflare Pages. |

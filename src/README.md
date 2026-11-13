@@ -10,3 +10,23 @@
 - Verify by execution before calling it done — on a clean checkout, not just the dev server. Pick your runtime's line as primary and record it in `## Run`: node (`npm run build` + serve/`preview` + `curl`, `tsc`), python (`python -m http.server` + `curl`, `compileall`), php (`php -l` + `php src/demo.php`), static (`npx serve` + `curl`).
 - Document the run command in the per-lesson `README.md` under `How demo works`, and append a `## Run` section here with the exact commands + env setup.
 - Credit the lineage: every lesson notes where it came from — the lesson repo and the template repo (`https://github.com/juaniquillo/explain-me-template`). A small footer works for webpages; a closing line in CLI output or a Sources link works for anything else. Quiet, same style as the output.
+
+## Run
+
+Primary (Vite build, uploadable artifact):
+
+```sh
+npm install
+npm run dev          # dev server with HMR (default http://localhost:5173)
+npm run build        # emits dist/ — upload this folder to Cloudflare Pages
+npm run preview      # serves dist/ at http://localhost:3131, then verify:
+curl -s http://localhost:3131/ | Select-String "form-group"
+```
+
+- Runtime: node v26 + npm 11 (install/build/serve) + any modern browser (needs `adoptedStyleSheets`, `customElements`, `queueMicrotask`).
+- Deps (npm, pinned in `package.json` + why each is needed):
+  - `vite@7.1.7` (devDep: dev server + production build + preview server).
+  - `tailwindcss@4.1.12` + `@tailwindcss/vite@4.1.12` (devDeps: compile page styling at build time — the component itself stays dependency-free).
+  - `highlight.js@11.9.0` (dep: bundled syntax highlighting; core + `javascript` language only, both theme CSS files emitted as assets via `?url` imports in `src/main.js`).
+- Env: none (no `.env`). Build output: `dist/` (self-contained — zero CDN requests; the only `https://` in the output is the footer lineage link text). True source is `src/form-group.js`; its bundled/minified copy in `dist/assets/` is a build artifact, as is the accordion listing in `index.html`.
+- Deploy (Cloudflare Pages): build command `npm run build`, output directory `dist`, framework preset Vite (or None).

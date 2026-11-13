@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (the toggle sets .dark on <html>).
+   Tailwind v4 defaults `dark:` to prefers-color-scheme, so override it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light dark;
+}
+
+form-group {
+  display: block;
+}
+
+form-group::part(error-message) {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.demo-shell {
+  --error-message-color: #dc2626;
+}
+
+.demo-shell.alt-error {
+  --error-message-color: #7c3aed;
+}
+
+/* Offline fallback so the page stays readable if a font stack is missing */
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+pre code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+
+details > summary {
+  cursor: pointer;
+}

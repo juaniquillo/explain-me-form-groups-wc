@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>explain-me-form-groups-wc — &lt;form-group&gt; validation wrapper</title>
+  <meta name="description" content="Interactive lesson: a <form-group> Web Component that replaces the native validation bubble with per-field shadow-DOM messages." />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
+  <div class="mx-auto max-w-3xl px-5 py-10">
+
+    <header class="mb-8">
+      <p class="text-xs font-semibold uppercase tracking-widest text-neutral-500">explain-me · web components · constraint validation</p>
+      <h1 class="mt-2 text-3xl font-bold">&lt;form-group&gt;: one field, one message, no popup</h1>
+      <p class="mt-3 text-neutral-600 dark:text-neutral-300">
+        A <code>form-group</code> is a <strong>custom element</strong> (a Web Component: your own HTML tag
+        with JS behavior) that wraps every control of one form field and renders that field's error
+        <em>below it</em> instead of the browser's native validation bubble. Light-DOM controls go through
+        a <code>&lt;slot&gt;</code>; the message lives in <strong>shadow DOM</strong> as
+        <code>span.error-message[aria-live="polite"][part="error-message"]</code>, styled by a shared
+        constructed stylesheet (<code>adoptedStyleSheets</code>).
+      </p>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button id="theme-toggle" type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700">Toggle light/dark</button>
+        <button id="error-color-toggle" type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700">Error color: red/purple</button>
+      </div>
+    </header>
+
+    <section class="mb-8 rounded border border-neutral-200 p-5 dark:border-neutral-800">
+      <h2 class="text-xl font-semibold">Try it: break the form, then submit it untouched</h2>
+      <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+        Nothing here uses <code>novalidate</code> — native validation stays on so <code>invalid</code> fires.
+        Click <strong>Submit</strong> without touching anything: every invalid control fires
+        <code>invalid</code>, each group writes its own message, and focus jumps to the first bad field.
+        Type to clear a message live; tab through the radio group to see the <code>focusout</code> guard;
+        press <strong>Reset</strong> to see messages and <code>aria-invalid</code> markers vanish.
+      </p>
+
+      <form id="demo-form" class="demo-shell mt-4 space-y-5">
+        <form-group value-missing-message="Pick a username — this one is required." too-short-message="Username needs 8+ characters.">
+          <label class="block text-sm font-medium" for="username">Username (required, minlength 8)</label>
+          <input id="username" name="username" type="text" required minlength="8" autocomplete="username"
+            class="mt-1 w-full rounded border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700" />
+        </form-group>
+
+        <form-group type-mismatch-message="That doesn't look like an email address.">
+          <label class="block text-sm font-medium" for="email">Email (required, type=email)</label>
+          <input id="email" name="email" type="email" required autocomplete="email"
+            class="mt-1 w-full rounded border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700" />
+        </form-group>
+
+        <form-group pattern-mismatch-message="Format is ABC-123: three capitals, a dash, three digits.">
+          <label class="block text-sm font-medium" for="code">Invite code (pattern <code>[A-Z]{3}-[0-9]{3}</code>)</label>
+          <input id="code" name="code" type="text" required pattern="[A-Z]{3}-[0-9]{3}" placeholder="ABC-123"
+            class="mt-1 w-full rounded border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700" />
+        </form-group>
+
+        <form-group range-underflow-message="You must be 18 or older." range-overflow-message="99 is the max here.">
+          <label class="block text-sm font-medium" for="age">Age (number, min 18, max 99)</label>
+          <input id="age" name="age" type="number" required min="18" max="99"
+            class="mt-1 w-full rounded border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700" />
+        </form-group>
+
+        <form-group too-short-message="Tell us a little more (20+ characters)." too-long-message="140 characters max — keep it tweet-sized.">
+          <label class="block text-sm font-medium" for="bio">Bio (textarea, minlength 20, maxlength 140)</label>
+          <textarea id="bio" name="bio" rows="3" minlength="20" maxlength="140"
+            class="mt-1 w-full rounded border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"></textarea>
+        </form-group>
+
+        <form-group value-missing-message="Pick a contact method.">
+          <span class="block text-sm font-medium" id="contact-label">Preferred contact (radio group — one <code>form-group</code>, three inputs)</span>
+          <div class="mt-1 flex gap-4" role="group" aria-labelledby="contact-label">
+            <label class="text-sm"><input type="radio" name="contact" value="email" required /> Email</label>
+            <label class="text-sm"><input type="radio" name="contact" value="sms" /> SMS</label>
+            <label class="text-sm"><input type="radio" name="contact" value="none" /> None</label>
+          </div>
+        </form-group>
+
+        <form-group value-missing-message="Choose a country.">
+          <label class="block text-sm font-medium" for="country">Country (select)</label>
+          <select id="country" name="country" required
+            class="mt-1 w-full rounded border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700">
+            <option value="">— pick one —</option>
+            <option>Argentina</option>
+            <option>Mexico</option>
+            <option>Spain</option>
+          </select>
+        </form-group>
+
+        <div class="flex gap-2">
+          <button type="submit" class="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-neutral-900">Submit</button>
+          <button type="reset" class="rounded border border-neutral-300 px-4 py-2 text-sm dark:border-neutral-700">Reset</button>
+        </div>
+        <p id="form-status" class="text-sm text-neutral-500" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="mb-8 space-y-4">
+      <h2 class="text-xl font-semibold">Overall: what the component does</h2>
+      <p class="text-sm text-neutral-600 dark:text-neutral-300">
+        Native validation already knows <em>what's wrong</em> (<code>input.validity</code> flags +
+        <code>validationMessage</code>), but its UI is one modal-ish bubble on one control. The component
+        keeps the knowledge and replaces the UI: it listens for <code>invalid</code> (submit-time, even on
+        untouched fields), <code>input</code> (clear while typing), <code>focusout</code> (validate on leave),
+        and form <code>reset</code> (scrub script-written state). <code>update()</code> finds the first invalid
+        control in the group, <code>#messageFor()</code> picks the message by <code>VALIDITY_ORDER</code>, and
+        <code>syncAriaInvalidity()</code> mirrors validity into <code>aria-invalid</code> so assistive tech
+        sees what sighted users see.
+      </p>
+      <h3 class="font-semibold">Usage</h3>
+      <pre><code class="language-html">&lt;form-group value-missing-message="Pick a username." too-short-message="8+ characters, please."&gt;
+  &lt;label for="username"&gt;Username&lt;/label&gt;
+  &lt;input id="username" name="username" type="text" required minlength="8" /&gt;
+&lt;/form-group&gt;
+&lt;script type="module" src="./form-group.js"&gt;&lt;/script&gt;</code></pre>
+      <p class="text-sm text-neutral-600 dark:text-neutral-300">
+        Custom messages come from <code>*-message</code> attributes; anything not overridden falls back to the
+        browser's <code>validationMessage</code>. Page CSS themes the shadow message through
+        <code>form-group::part(error-message)</code> and <code>--error-message-color</code> (try the
+        purple toggle above — it sets the variable on the form, the shadow sheet reads it).
+      </p>
+    </section>
+
+    <section class="mb-8 space-y-4">
+      <h2 class="text-xl font-semibold">Code walkthrough: original vs reworked</h2>
+      <div class="overflow-x-auto rounded border border-neutral-200 dark:border-neutral-800">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-neutral-100 dark:bg-neutral-900">
+            <tr><th class="p-2">Concern</th><th class="p-2">Original (Kevin Powell, 109 lines)</th><th class="p-2">Reworked (kitchen-sink, 180 lines)</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Controls</td><td class="p-2"><code>#input</code>, first <code>querySelector("input, textarea")</code></td><td class="p-2"><code>#inputs[]</code>, all of <code>querySelectorAll("input, textarea, select")</code> — radio groups + selects work</td></tr>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Message pick</td><td class="p-2"><code>for...in validity</code> — enumeration order, can blame the wrong flag</td><td class="p-2">Fixed <code>VALIDITY_ORDER</code> — empty+short reports <code>valueMissing</code></td></tr>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Submit</td><td class="p-2"><code>preventDefault()</code> only; no message until blur</td><td class="p-2"><code>update()</code> immediately + <code>queueMicrotask</code> focus to <code>form.querySelector(":invalid")</code></td></tr>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Leaving a field</td><td class="p-2">per-input <code>blur</code> (doesn't bubble; radio hop misfires)</td><td class="p-2">group-level <code>focusout</code> + <code>relatedTarget</code> guard (bubbles; intra-group moves ignored)</td></tr>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Typing</td><td class="p-2">clears text (plus stray <code>console.log</code>)</td><td class="p-2">clears text <em>and</em> re-syncs <code>aria-invalid</code> per control</td></tr>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Reset</td><td class="p-2">unhandled — stale message stays</td><td class="p-2">form <code>reset</code> + <code>queueMicrotask</code> (event fires pre-restore) clears all</td></tr>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Listeners</td><td class="p-2">manual add/remove, doubles on re-connect</td><td class="p-2"><code>AbortController</code> + <code>{ signal }</code>, abort-and-recreate on reconnect</td></tr>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Empty message</td><td class="p-2"><code>:empty { display:none }</code> removes node from tree</td><td class="p-2">always in tree, <code>display:block</code> (empty block takes no room; live region stays announced)</td></tr>
+            <tr class="border-t border-neutral-200 dark:border-neutral-800"><td class="p-2 font-medium">Define</td><td class="p-2">unconditional <code>define</code> (throws on double registration)</td><td class="p-2">guarded <code>if (!customElements.get(...))</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="font-semibold">The three load-bearing snippets</h3>
+      <pre><code class="language-js">// 1. Precedence, not enumeration order (src/form-group.js)
+const VALIDITY_ORDER = ['valueMissing', 'typeMismatch', 'patternMismatch', 'tooShort', /* … */];
+#messageFor(input) {
+  for (const key of VALIDITY_ORDER) {
+    if (input.validity[key] === true)
+      return this.#customErrorMessage[key] || input.validationMessage;
+  }
+  return input.validationMessage || 'This field is invalid';
+}</code></pre>
+      <pre><code class="language-js">// 2. Group-level leave, not per-input blur (src/form-group.js)
+handleFocusOut(event) {
+  if (event.relatedTarget instanceof Node &amp;&amp; this.contains(event.relatedTarget)) return; // still inside
+  this.update();
+}</code></pre>
+      <pre><code class="language-js">// 3. One abort tears down every listener (src/form-group.js)
+this.#abortController?.abort();
+this.#abortController = new AbortController();
+input.addEventListener('invalid', this.handleInvalid, { signal });</code></pre>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-xl font-semibold">Gotchas (try each one above)</h2>
+      <ul class="mt-2 list-disc space-y-2 pl-5 text-sm text-neutral-600 dark:text-neutral-300">
+        <li><strong>Submit an untouched form.</strong> <code>invalid</code> fires per control and <em>doesn't bubble</em> — that's why listeners sit on each input, not the group. <code>preventDefault()</code> kills the bubble popup <em>and</em> the auto-focus, so the component re-focuses <code>:invalid</code> in a microtask (after the cancelled submit settles).</li>
+        <li><strong>Leave Username empty.</strong> It's both missing <em>and</em> too short, but you get "required": <code>VALIDITY_ORDER</code> puts <code>valueMissing</code> first. The original's <code>for...in validity</code> has no such contract.</li>
+        <li><strong>Tab between the radio buttons.</strong> No flicker: <code>focusout</code> bubbles to the group and the <code>relatedTarget</code> check skips moves that stay inside. Per-input <code>blur</code> can't do this cleanly.</li>
+        <li><strong>Type one character, then delete it.</strong> Message clears while typing; <code>aria-invalid</code> tracks each control's live validity instead of the last message.</li>
+        <li><strong>Submit, then Reset.</strong> Reset fires <em>before</em> values restore, hence the microtask; without it you'd clear the message but read stale values. Stale <code>aria-invalid</code> is scrubbed too.</li>
+        <li><strong>Inspect the error span.</strong> It's always in the shadow tree (empty block = zero height). Removing it with <code>:empty{display:none}</code> would drop the live region so its return isn't announced.</li>
+        <li><strong>Move a group or load the script twice.</strong> Re-connect aborts and re-wires instead of doubling listeners; the <code>customElements.get</code> guard stops double-<code>define</code> throws. Handlers are bound in the constructor because they run as input listeners where <code>this</code> would otherwise be the input.</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <details class="rounded border border-neutral-200 dark:border-neutral-800">
+        <summary class="bg-neutral-100 px-4 py-3 font-medium dark:bg-neutral-900">Full reworked source — <code>src/form-group.js</code> (true source; this listing is a copy)</summary>
+        <div class="max-h-[32rem] overflow-auto">
+          <pre class="m-0"><code class="language-js">const formGroupStyles = new CSSStyleSheet();
+
+formGroupStyles.replaceSync(`
+  .error-message {
+    display: block;
+    color: var(--error-message-color, red);
+  }
+`);
+
+// The validity states in the order their messages take precedence: a field
+// that is empty and too short is missing, not short.
+const VALIDITY_ORDER = [
+  'valueMissing',
+  'typeMismatch',
+  'patternMismatch',
+  'tooShort',
+  'tooLong',
+  'rangeUnderflow',
+  'rangeOverflow',
+  'stepMismatch',
+  'badInput',
+  'customError',
+];
+
+class FormGroup extends HTMLElement {
+  #inputs = [];
+  #form = null;
+  #abortController = null;
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.adoptedStyleSheets = [formGroupStyles];
+    // The message stays in the tree while it is empty: an empty block takes
+    // no room, and a region that leaves the tree is not announced when it
+    // comes back.
+    this.shadowRoot.innerHTML = `
+      &lt;slot&gt;&lt;/slot&gt;
+      &lt;span class="error-message" aria-live="polite" part="error-message"&gt;&lt;/span&gt;
+    `;
+
+    // bind event handlers since we&#x27;re applying them
+    // to external elements and need the `this`
+    // context to refer to this class
+    this.handleInvalid = this.handleInvalid.bind(this);
+    this.handleInput = this.handleInput.bind(this);
+    this.handleFocusOut = this.handleFocusOut.bind(this);
+    this.handleReset = this.handleReset.bind(this);
+  }
+
+  handleInvalid(event) {
+    // turn off the browser validation popup and show the message below the
+    // field instead. `invalid` fires on every invalid control when a submit
+    // is blocked, whatever triggered the submit, so this is also what
+    // validates a form nobody has touched yet.
+    event.preventDefault();
+    this.update();
+
+    // Without the popup the browser no longer puts the caret on the first
+    // field to fix, so it is done here instead. The microtask waits out the
+    // submit, so the focus lands after the browser has finished blocking it.
+    queueMicrotask(() =&gt; {
+      this.#form?.querySelector(':invalid')?.focus();
+    });
+  }
+
+  handleInput() {
+    // hide the error message while the user is typing; the invalid marker
+    // follows each control&#x27;s own validity instead.
+    this.setMessage('');
+    this.syncAriaInvalidity();
+  }
+
+  handleFocusOut(event) {
+    // Moving between the controls of one group blurs one before the next is
+    // checked, and the group is momentarily invalid. The message waits until
+    // the focus truly leaves the group.
+    if (event.relatedTarget instanceof Node &amp;&amp; this.contains(event.relatedTarget)) {
+      return;
+    }
+
+    this.update();
+  }
+
+  handleReset() {
+    // A reset restores the values but leaves anything the script wrote, so
+    // the message and the markers go back to how the page loaded: none on
+    // screen. The event fires before the values change, so this waits a tick.
+    queueMicrotask(() =&gt; {
+      this.setMessage('');
+
+      for (const input of this.#inputs) {
+        input.removeAttribute('aria-invalid');
+      }
+    });
+  }
+
+  connectedCallback() {
+    // A group holds every control of one field, so all of them are wired: a
+    // radio group, for example, is only valid once one of its buttons is
+    // checked.
+    this.#inputs = [...this.querySelectorAll(&quot;input, textarea, select&quot;)];
+    this.#form = this.closest('form');
+
+    // connecting again replaces the listeners instead of doubling them
+    this.#abortController?.abort();
+    this.#abortController = new AbortController();
+    const { signal } = this.#abortController;
+
+    for (const input of this.#inputs) {
+      input.addEventListener('invalid', this.handleInvalid, { signal });
+      input.addEventListener('input', this.handleInput, { signal });
+      input.addEventListener('focusout', this.handleFocusOut, { signal });
+    }
+
+    this.#form?.addEventListener('reset', this.handleReset, { signal });
+  }
+
+  disconnectedCallback() {
+    // clean up all event listeners
+    this.#abortController?.abort();
+    this.#abortController = null;
+    this.#form = null;
+  }
+
+  update() {
+    const invalid = this.#inputs.find((input) =&gt; !input.validity.valid);
+
+    this.setMessage(invalid ? this.#messageFor(invalid) : '');
+    this.syncAriaInvalidity();
+  }
+
+  setMessage(text) {
+    const message = this.#errorMessage;
+
+    if (message.textContent !== text) {
+      message.textContent = text;
+    }
+  }
+
+  syncAriaInvalidity() {
+    for (const input of this.#inputs) {
+      if (input.validity.valid) {
+        input.removeAttribute('aria-invalid');
+      } else {
+        input.setAttribute('aria-invalid', 'true');
+      }
+    }
+  }
+
+  get #errorMessage() {
+    return this.shadowRoot.querySelector('.error-message');
+  }
+
+  #messageFor(input) {
+    for (const key of VALIDITY_ORDER) {
+      if (input.validity[key] === true) {
+        return this.#customErrorMessage[key] || input.validationMessage;
+      }
+    }
+
+    return input.validationMessage || 'This field is invalid';
+  }
+
+  get #customErrorMessage() {
+    return {
+      valueMissing: this.getAttribute('value-missing-message') || 'This field is required',
+      tooLong: this.getAttribute('too-long-message') || 'This field is too long',
+      tooShort: this.getAttribute('too-short-message') || 'This field is too short',
+      rangeOverflow: this.getAttribute('range-overflow-message') || 'This field has a number that is too big',
+      rangeUnderflow: this.getAttribute('range-underflow-message') || 'This field has a number that is too small',
+      typeMismatch: this.getAttribute('type-mismatch-message') || 'This field is the wrong type',
+      patternMismatch: this.getAttribute('pattern-mismatch-message') || &quot;This field&#x27;s value does not match the pattern&quot;,
+    }
+  }
+}
+
+if (!customElements.get('form-group')) {
+  customElements.define('form-group', FormGroup);
+}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <footer class="border-t border-neutral-200 pt-4 text-xs text-neutral-500 dark:border-neutral-800">
+      Lesson repo: <code>explain-me-form-groups-wc</code> · Template: <code>explain-me-template</code> (https://github.com/juaniquillo/explain-me-template) · Subject: <code>components-kitchen-sink/resources/js/form-group.js</code> after <code>kevin-powell/form-groups-wc</code>.
+    </footer>
+  </div>
+
+  <script type="module" src="./form-group.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

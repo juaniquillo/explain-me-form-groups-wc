@@ -21,11 +21,11 @@ Verify by execution before calling it done: build, serve + curl, typecheck — o
 
 ## Per-topic overrides
 
-<!-- Fill per-lesson with stack-specific commands and explanation method. Example:
-- Run: `npm run dev` (primary), `npm run build` + `npm run preview`, `npm run typecheck`
-- Deps: `vite@7` (dev server + build), `tailwindcss@4` (demo styling) — why each is needed
-- Env: `.env` location + required vars (e.g. `VITE_SITE_URL`)
-- Delivery: static site (default) / interactive / cli — why this vehicle fits the concept
-- Method for this tech: overall / usage examples / code walkthrough / interactive + graphs / gotchas
-- Gitignore: append the lines your stack needs (e.g. Node: `node_modules/ dist/` / Python: `__pycache__/ .venv/`)
--->
+- Run: `npm run dev` (dev server), `npm run build` → `dist/` (upload artifact), `npm run preview -- --port 3131` (serve the build); verify `curl -s http://localhost:3131/ | Select-String "form-group"`
+- Deps: `vite@7.1.7` + `@tailwindcss/vite@4.1.12` + `tailwindcss@4.1.12` (devDeps: dev server, build, compiled page styling — no browser CDN), `highlight.js@11.9.0` (dep: bundled highlighting, core + javascript + both theme CSS via `?url`)
+- Env: none (no `.env`); build output `dist/` (self-contained, zero CDN requests) — Cloudflare Pages: build command `npm run build`, output directory `dist`
+- Delivery: interactive — submit/typing/tab/reset try-it form bound to the `invalid`/`input`/`focusout`/`reset` paths, plus accordion with full source
+- Method for this tech: overall + usage examples + code walkthrough (original-vs-reworked table + 3 load-bearing snippets) + interactive + gotchas
+- Gotchas anchor: `TOPIC.md` confusions 1–6, answered in `README.md` with `src/form-group.js:line` refs
+- Note: `@custom-variant dark` in `src/styles.css` keeps the class-based light/dark toggle working (Tailwind v4 defaults `dark:` to `prefers-color-scheme`)
+- Gitignore: appended `node_modules/ dist/ *.log` (Vite stack)
