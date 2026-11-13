@@ -1,9 +1,11 @@
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
+import xml from 'highlight.js/lib/languages/xml';
 import lightUrl from 'highlight.js/styles/github.css?url';
 import darkUrl from 'highlight.js/styles/github-dark.css?url';
 
 hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('xml', xml); // 'html' is an alias — covers language-html blocks
 
 // Bundled highlight.js themes, toggled like stylesheets (same behavior the
 // CDN <link> pair had; the ?url imports make Vite emit both CSS files).

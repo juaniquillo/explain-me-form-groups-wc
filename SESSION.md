@@ -35,6 +35,17 @@ Moved image to `src/public/og-image.jpg` (copies to `dist/` root unhashed). Adde
 ### Next
 Serve `dist/` + `curl` verify; set `VITE_SITE_URL` in Cloudflare Pages dashboard; share.
 
+## 2026-11-13 — round 4
+
+### Prompt
+Fix: the Usage `language-html` block renders without highlighting.
+
+### Response
+Root cause: `src/main.js` registered only the `javascript` grammar (slim bundle), so `highlightAll()` skipped `language-html`. Added `xml` registration (`html` is its alias). Verified in Node: `hljs.highlight(..., {language:'html'})` emits `hljs-tag/name/attr` spans. Rebuilt `dist/` with production `VITE_SITE_URL`.
+
+### Next
+Visual check via `npm run preview`; then share.
+
 ## YYYY-MM-DD — round N
 
 ### Prompt
