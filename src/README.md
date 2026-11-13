@@ -28,5 +28,6 @@ curl -s http://localhost:3131/ | Select-String "form-group"
   - `vite@7.1.7` (devDep: dev server + production build + preview server).
   - `tailwindcss@4.1.12` + `@tailwindcss/vite@4.1.12` (devDeps: compile page styling at build time — the component itself stays dependency-free).
   - `highlight.js@11.9.0` (dep: bundled syntax highlighting; core + `javascript` language only, both theme CSS files emitted as assets via `?url` imports in `src/main.js`).
-- Env: none (no `.env`). Build output: `dist/` (self-contained — zero CDN requests; the only `https://` in the output is the footer lineage link text). True source is `src/form-group.js`; its bundled/minified copy in `dist/assets/` is a build artifact, as is the accordion listing in `index.html`.
+- Env: `VITE_SITE_URL` — absolute site URL for `og:url`/`og:image`, baked in at build time (see `.env.example`; production value lives in the Cloudflare Pages dashboard, unset falls back to `http://localhost:3131`). No other env needed.
 - Deploy (Cloudflare Pages): build command `npm run build`, output directory `dist`, framework preset Vite (or None).
+- Build output: `dist/` (self-contained — zero CDN requests; the only other `https://` in the output is the footer lineage link text). True source is `src/form-group.js`; its bundled/minified copy in `dist/assets/` is a build artifact, as is the accordion listing in `index.html`.

@@ -24,6 +24,17 @@ Added `package.json` (`vite@7.1.7`, `tailwindcss@4.1.12`, `@tailwindcss/vite@4.1
 ### Next
 Serve `dist/` + `curl` verify; connect Cloudflare Pages (`npm run build` → `dist/`).
 
+## 2026-11-13 — round 3
+
+### Prompt
+OG tags + `og-image.jpg` (user added, 1200×630) + `VITE_SITE_URL` env var for absolute URLs.
+
+### Response
+Moved image to `src/public/og-image.jpg` (copies to `dist/` root unhashed). Added `transformIndexHtml` plugin in `vite.config.js` injecting OG + Twitter tags at build time (scrapers don't run JS — no runtime injection); `SITE_URL` from `VITE_SITE_URL`, fallback `http://localhost:3131`. Added `.env.example`; production value goes in the Pages dashboard. Verified: build with var → absolute `og:url`/`og:image`, build without → localhost fallback, `dist/og-image.jpg` present. Updated `README.md`, `AGENTS.md`, `src/README.md`.
+
+### Next
+Serve `dist/` + `curl` verify; set `VITE_SITE_URL` in Cloudflare Pages dashboard; share.
+
 ## YYYY-MM-DD — round N
 
 ### Prompt
